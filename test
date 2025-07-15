@@ -1,0 +1,4 @@
+print("تم تحميل السكربت من GitHub!")
+game:GetService("Players").PlayerAdded:Connect(function(player)
+    print("أهلاً " .. player.Name .. " في اللعبة!")
+end)
