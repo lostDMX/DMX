@@ -1,309 +1,318 @@
---// Services
+--// الخدمات
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 
---// Player
+--// اللاعب
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
---// Variables
+--// المتغيرات
 local Farming = false
 local MoveTween
 local MOVE_SPEED = 1.5
 local VISIT_DELAY = 1.5
 local VisitedCoins = {}
 
---// GUI
+--// الواجهة
 local ScreenGui = Instance.new("ScreenGui", Player.PlayerGui)
-ScreenGui.Name = "CoinFarmGui"
+ScreenGui.Name = "CoinFarmSimple"
 ScreenGui.ResetOnSpawn = false
 
--- Toggle Button
+-- زر التبديل
 local ToggleButton = Instance.new("TextButton", ScreenGui)
-ToggleButton.Size = UDim2.fromOffset(55,55)
-ToggleButton.Position = UDim2.fromScale(0.05,0.4)
+ToggleButton.Size = UDim2.fromOffset(50, 50)
+ToggleButton.Position = UDim2.fromScale(0.05, 0.4)
 ToggleButton.Text = "💰"
-ToggleButton.BackgroundColor3 = Color3.fromRGB(30,30,30)
-ToggleButton.TextColor3 = Color3.new(1,1,1)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+ToggleButton.TextColor3 = Color3.new(1, 1, 1)
 ToggleButton.Font = Enum.Font.GothamBold
 ToggleButton.TextSize = 24
 ToggleButton.Active = true
 ToggleButton.Draggable = true
-Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(1,0)
+Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(1, 0)
 
--- Main Frame
+-- الإطار الرئيسي
 local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.fromOffset(380,320)
-Frame.Position = UDim2.fromScale(0.35,0.25)
-Frame.BackgroundColor3 = Color3.fromRGB(20,20,25)
+Frame.Size = UDim2.fromOffset(400, 300)
+Frame.Position = UDim2.fromScale(0.3, 0.3)
+Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 Frame.Visible = false
 Frame.Active = true
 Frame.Draggable = true
-Instance.new("UICorner", Frame).CornerRadius = UDim.new(0,18)
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 12)
 
--- Stroke
-local Stroke = Instance.new("UIStroke", Frame)
-Stroke.Color = Color3.fromRGB(255,215,0)
-Stroke.Thickness = 1.2
-Stroke.Transparency = 0.2
+-- إطار العنوان
+local Header = Instance.new("Frame", Frame)
+Header.Size = UDim2.new(1, 0, 0, 50)
+Header.Position = UDim2.fromOffset(0, 0)
+Header.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+Header.BorderSizePixel = 0
+Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 12)
 
--- Title
-local Title = Instance.new("TextLabel", Frame)
-Title.Size = UDim2.new(1,-20,0,45)
-Title.Position = UDim2.fromOffset(10,5)
+-- العنوان
+local Title = Instance.new("TextLabel", Header)
+Title.Size = UDim2.new(1, -60, 1, 0)
+Title.Position = UDim2.fromOffset(15, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "Coin Auto Farm"
-Title.TextColor3 = Color3.fromRGB(255,215,0)
+Title.Text = "تجميع العملات"
+Title.TextColor3 = Color3.fromRGB(255, 215, 0)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 24
+Title.TextSize = 20
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Version
-local Version = Instance.new("TextLabel", Frame)
-Version.Size = UDim2.fromOffset(120,20)
-Version.Position = UDim2.fromOffset(10,45)
-Version.BackgroundTransparency = 1
-Version.Text = "Version 1.8"
-Version.TextColor3 = Color3.fromRGB(180,180,180)
-Version.Font = Enum.Font.Gotham
-Version.TextSize = 14
-Version.TextXAlignment = Enum.TextXAlignment.Left
-
--- Author
-local Author = Instance.new("TextLabel", Frame)
-Author.Size = UDim2.fromOffset(200,20)
-Author.Position = UDim2.fromOffset(10,65)
-Author.BackgroundTransparency = 1
-Author.Text = "Made by: دحمكس | D7mx"
-Author.TextColor3 = Color3.fromRGB(180,180,180)
-Author.Font = Enum.Font.Gotham
-Author.TextSize = 14
-Author.TextXAlignment = Enum.TextXAlignment.Left
-
--- Close Button
-local CloseBtn = Instance.new("TextButton", Frame)
-CloseBtn.Size = UDim2.fromOffset(30,30)
-CloseBtn.Position = UDim2.fromOffset(Frame.Size.X.Offset - 35,5)
+-- زر الإغلاق
+local CloseBtn = Instance.new("TextButton", Header)
+CloseBtn.Size = UDim2.fromOffset(30, 30)
+CloseBtn.Position = UDim2.new(1, -40, 0.5, -15)
 CloseBtn.Text = "✕"
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.TextSize = 18
-CloseBtn.TextColor3 = Color3.new(1,0,0)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(25,25,25)
-Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(1,0)
+CloseBtn.TextColor3 = Color3.new(1, 0.3, 0.3)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(1, 0)
 
--- Start Button
-local StartBtn = Instance.new("TextButton", Frame)
-StartBtn.Size = UDim2.fromOffset(150,50)
-StartBtn.Position = UDim2.fromOffset(20,100)
-StartBtn.Text = "تشغيل"
+-- الحالة
+local StatusLabel = Instance.new("TextLabel", Frame)
+StatusLabel.Size = UDim2.new(1, -30, 0, 25)
+StatusLabel.Position = UDim2.fromOffset(15, 65)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "الحالة: متوقف"
+StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+StatusLabel.Font = Enum.Font.GothamSemibold
+StatusLabel.TextSize = 16
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- عدد العملات
+local CoinsLabel = Instance.new("TextLabel", Frame)
+CoinsLabel.Size = UDim2.new(1, -30, 0, 25)
+CoinsLabel.Position = UDim2.fromOffset(15, 95)
+CoinsLabel.BackgroundTransparency = 1
+CoinsLabel.Text = "العملات المجمعة: 0"
+CoinsLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+CoinsLabel.Font = Enum.Font.GothamSemibold
+CoinsLabel.TextSize = 16
+CoinsLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- أزرار التحكم
+local ControlsFrame = Instance.new("Frame", Frame)
+ControlsFrame.Size = UDim2.new(1, -30, 0, 50)
+ControlsFrame.Position = UDim2.fromOffset(15, 130)
+ControlsFrame.BackgroundTransparency = 1
+
+-- زر التشغيل
+local StartBtn = Instance.new("TextButton", ControlsFrame)
+StartBtn.Size = UDim2.new(0.48, 0, 1, 0)
+StartBtn.Position = UDim2.fromOffset(0, 0)
+StartBtn.Text = "▶ تشغيل"
 StartBtn.Font = Enum.Font.GothamBold
 StartBtn.TextSize = 18
-StartBtn.TextColor3 = Color3.new(1,1,1)
-StartBtn.BackgroundColor3 = Color3.fromRGB(50,180,90)
-Instance.new("UICorner", StartBtn).CornerRadius = UDim.new(0,14)
+StartBtn.TextColor3 = Color3.new(1, 1, 1)
+StartBtn.BackgroundColor3 = Color3.fromRGB(50, 180, 80)
+Instance.new("UICorner", StartBtn).CornerRadius = UDim.new(0, 8)
 
--- Stop Button
-local StopBtn = Instance.new("TextButton", Frame)
-StopBtn.Size = UDim2.fromOffset(150,50)
-StopBtn.Position = UDim2.fromOffset(210,100)
-StopBtn.Text = "إيقاف"
+-- زر الإيقاف
+local StopBtn = Instance.new("TextButton", ControlsFrame)
+StopBtn.Size = UDim2.new(0.48, 0, 1, 0)
+StopBtn.Position = UDim2.new(0.52, 0, 0, 0)
+StopBtn.Text = "⏹ إيقاف"
 StopBtn.Font = Enum.Font.GothamBold
 StopBtn.TextSize = 18
-StopBtn.TextColor3 = Color3.new(1,1,1)
-StopBtn.BackgroundColor3 = Color3.fromRGB(200,70,70)
-Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0,14)
+StopBtn.TextColor3 = Color3.new(1, 1, 1)
+StopBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
+Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 8)
 
--- Settings Title
-local SettingsTitle = Instance.new("TextLabel", Frame)
-SettingsTitle.Size = UDim2.fromOffset(200,25)
-SettingsTitle.Position = UDim2.fromOffset(10,170)
-SettingsTitle.BackgroundTransparency = 1
-SettingsTitle.Text = "Settings"
-SettingsTitle.TextColor3 = Color3.fromRGB(255,215,0)
-SettingsTitle.Font = Enum.Font.GothamBold
-SettingsTitle.TextSize = 16
-SettingsTitle.TextXAlignment = Enum.TextXAlignment.Left
+-- إعدادات التوقيت
+local SettingsFrame = Instance.new("Frame", Frame)
+SettingsFrame.Size = UDim2.new(1, -30, 0, 90)
+SettingsFrame.Position = UDim2.fromOffset(15, 190)
+SettingsFrame.BackgroundTransparency = 1
 
--- Setting: Frame Color Buttons
-local function CreateColorBtn(pos, color)
-	local btn = Instance.new("TextButton", Frame)
-	btn.Size = UDim2.fromOffset(40,40)
-	btn.Position = pos
-	btn.Text = ""
-	btn.BackgroundColor3 = color
-	btn.MouseButton1Click:Connect(function()
-		Frame.BackgroundColor3 = color
-	end)
-	Instance.new("UICorner", btn).CornerRadius = UDim.new(1,0)
-end
+-- تأخير الزيارة
+local DelayContainer = Instance.new("Frame", SettingsFrame)
+DelayContainer.Size = UDim2.new(1, 0, 0, 40)
+DelayContainer.Position = UDim2.fromOffset(0, 0)
+DelayContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+Instance.new("UICorner", DelayContainer).CornerRadius = UDim.new(0, 8)
 
-CreateColorBtn(UDim2.fromOffset(20,205), Color3.fromRGB(20,20,25))
-CreateColorBtn(UDim2.fromOffset(70,205), Color3.fromRGB(35,35,45))
-CreateColorBtn(UDim2.fromOffset(120,205), Color3.fromRGB(25,30,40))
-CreateColorBtn(UDim2.fromOffset(170,205), Color3.fromRGB(40,25,50))
-
--- Setting: VISIT_DELAY
-local DelayLabel = Instance.new("TextLabel", Frame)
-DelayLabel.Size = UDim2.fromOffset(150,20)
-DelayLabel.Position = UDim2.fromOffset(10,255)
+local DelayLabel = Instance.new("TextLabel", DelayContainer)
+DelayLabel.Size = UDim2.new(0.5, 0, 1, 0)
+DelayLabel.Position = UDim2.fromOffset(10, 0)
 DelayLabel.BackgroundTransparency = 1
-DelayLabel.Text = "Visit Delay: "..VISIT_DELAY.."s"
-DelayLabel.TextColor3 = Color3.fromRGB(180,180,180)
+DelayLabel.Text = "تأخير: "..VISIT_DELAY.."s"
+DelayLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
 DelayLabel.Font = Enum.Font.Gotham
 DelayLabel.TextSize = 14
 DelayLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-local IncreaseDelay = Instance.new("TextButton", Frame)
-IncreaseDelay.Size = UDim2.fromOffset(25,25)
-IncreaseDelay.Position = UDim2.fromOffset(160,252)
-IncreaseDelay.Text = "+"
-IncreaseDelay.Font = Enum.Font.GothamBold
-IncreaseDelay.TextSize = 16
-IncreaseDelay.TextColor3 = Color3.new(0,1,0)
-IncreaseDelay.BackgroundColor3 = Color3.fromRGB(30,30,30)
-Instance.new("UICorner", IncreaseDelay).CornerRadius = UDim.new(1,0)
-IncreaseDelay.MouseButton1Click:Connect(function()
-	VISIT_DELAY = VISIT_DELAY + 0.1
-	DelayLabel.Text = "Visit Delay: "..string.format("%.1f",VISIT_DELAY).."s"
-end)
+local DelayMinus = Instance.new("TextButton", DelayContainer)
+DelayMinus.Size = UDim2.fromOffset(30, 30)
+DelayMinus.Position = UDim2.new(0.5, 10, 0.5, -15)
+DelayMinus.Text = "-"
+DelayMinus.Font = Enum.Font.GothamBold
+DelayMinus.TextSize = 18
+DelayMinus.TextColor3 = Color3.new(1, 0.3, 0.3)
+DelayMinus.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+Instance.new("UICorner", DelayMinus).CornerRadius = UDim.new(0, 6)
 
-local DecreaseDelay = Instance.new("TextButton", Frame)
-DecreaseDelay.Size = UDim2.fromOffset(25,25)
-DecreaseDelay.Position = UDim2.fromOffset(190,252)
-DecreaseDelay.Text = "-"
-DecreaseDelay.Font = Enum.Font.GothamBold
-DecreaseDelay.TextSize = 16
-DecreaseDelay.TextColor3 = Color3.new(1,0,0)
-DecreaseDelay.BackgroundColor3 = Color3.fromRGB(30,30,30)
-Instance.new("UICorner", DecreaseDelay).CornerRadius = UDim.new(1,0)
-DecreaseDelay.MouseButton1Click:Connect(function()
-	VISIT_DELAY = math.max(0.1,VISIT_DELAY - 0.1)
-	DelayLabel.Text = "Visit Delay: "..string.format("%.1f",VISIT_DELAY).."s"
-end)
+local DelayPlus = Instance.new("TextButton", DelayContainer)
+DelayPlus.Size = UDim2.fromOffset(30, 30)
+DelayPlus.Position = UDim2.new(0.7, 10, 0.5, -15)
+DelayPlus.Text = "+"
+DelayPlus.Font = Enum.Font.GothamBold
+DelayPlus.TextSize = 18
+DelayPlus.TextColor3 = Color3.new(0.3, 1, 0.3)
+DelayPlus.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+Instance.new("UICorner", DelayPlus).CornerRadius = UDim.new(0, 6)
 
--- Setting: MOVE_SPEED
-local SpeedLabel = Instance.new("TextLabel", Frame)
-SpeedLabel.Size = UDim2.fromOffset(150,20)
-SpeedLabel.Position = UDim2.fromOffset(220,255)
+-- سرعة الحركة
+local SpeedContainer = Instance.new("Frame", SettingsFrame)
+SpeedContainer.Size = UDim2.new(1, 0, 0, 40)
+SpeedContainer.Position = UDim2.fromOffset(0, 50)
+SpeedContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+Instance.new("UICorner", SpeedContainer).CornerRadius = UDim.new(0, 8)
+
+local SpeedLabel = Instance.new("TextLabel", SpeedContainer)
+SpeedLabel.Size = UDim2.new(0.5, 0, 1, 0)
+SpeedLabel.Position = UDim2.fromOffset(10, 0)
 SpeedLabel.BackgroundTransparency = 1
-SpeedLabel.Text = "Move Speed: "..MOVE_SPEED
-SpeedLabel.TextColor3 = Color3.fromRGB(180,180,180)
+SpeedLabel.Text = "السرعة: "..MOVE_SPEED
+SpeedLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
 SpeedLabel.Font = Enum.Font.Gotham
 SpeedLabel.TextSize = 14
 SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-local IncreaseSpeed = Instance.new("TextButton", Frame)
-IncreaseSpeed.Size = UDim2.fromOffset(25,25)
-IncreaseSpeed.Position = UDim2.fromOffset(310,252)
-IncreaseSpeed.Text = "+"
-IncreaseSpeed.Font = Enum.Font.GothamBold
-IncreaseSpeed.TextSize = 16
-IncreaseSpeed.TextColor3 = Color3.new(0,1,0)
-IncreaseSpeed.BackgroundColor3 = Color3.fromRGB(30,30,30)
-Instance.new("UICorner", IncreaseSpeed).CornerRadius = UDim.new(1,0)
-IncreaseSpeed.MouseButton1Click:Connect(function()
-	MOVE_SPEED = MOVE_SPEED + 0.1
-	SpeedLabel.Text = "Move Speed: "..string.format("%.1f",MOVE_SPEED)
-end)
+local SpeedMinus = Instance.new("TextButton", SpeedContainer)
+SpeedMinus.Size = UDim2.fromOffset(30, 30)
+SpeedMinus.Position = UDim2.new(0.5, 10, 0.5, -15)
+SpeedMinus.Text = "-"
+SpeedMinus.Font = Enum.Font.GothamBold
+SpeedMinus.TextSize = 18
+SpeedMinus.TextColor3 = Color3.new(1, 0.3, 0.3)
+SpeedMinus.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+Instance.new("UICorner", SpeedMinus).CornerRadius = UDim.new(0, 6)
 
-local DecreaseSpeed = Instance.new("TextButton", Frame)
-DecreaseSpeed.Size = UDim2.fromOffset(25,25)
-DecreaseSpeed.Position = UDim2.fromOffset(340,252)
-DecreaseSpeed.Text = "-"
-DecreaseSpeed.Font = Enum.Font.GothamBold
-DecreaseSpeed.TextSize = 16
-DecreaseSpeed.TextColor3 = Color3.new(1,0,0)
-DecreaseSpeed.BackgroundColor3 = Color3.fromRGB(30,30,30)
-Instance.new("UICorner", DecreaseSpeed).CornerRadius = UDim.new(1,0)
-DecreaseSpeed.MouseButton1Click:Connect(function()
-	MOVE_SPEED = math.max(0.1,MOVE_SPEED - 0.1)
-	SpeedLabel.Text = "Move Speed: "..string.format("%.1f",MOVE_SPEED)
-end)
+local SpeedPlus = Instance.new("TextButton", SpeedContainer)
+SpeedPlus.Size = UDim2.fromOffset(30, 30)
+SpeedPlus.Position = UDim2.new(0.7, 10, 0.5, -15)
+SpeedPlus.Text = "+"
+SpeedPlus.Font = Enum.Font.GothamBold
+SpeedPlus.TextSize = 18
+SpeedPlus.TextColor3 = Color3.new(0.3, 1, 0.3)
+SpeedPlus.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+Instance.new("UICorner", SpeedPlus).CornerRadius = UDim.new(0, 6)
 
---// Functions (منطق السكربت بدون تغيير)
+--// منطق السكربت (نفس الطريقة بالضبط)
+local TotalCoins = 0
 
 local function GetNextClosestCoin()
-	local closestCoin
-	local shortest = math.huge
+    local closestCoin
+    local shortest = math.huge
 
-	for _,v in ipairs(workspace:GetDescendants()) do
-		if v:IsA("BasePart")
-			and v.Name == "Coin_Server"
-			and v.Parent
-			and not VisitedCoins[v] then
+    for _,v in ipairs(workspace:GetDescendants()) do
+        if v:IsA("BasePart")
+            and v.Name == "Coin_Server"
+            and v.Parent
+            and not VisitedCoins[v] then
 
-			local dist = (HumanoidRootPart.Position - v.Position).Magnitude
-			if dist < shortest then
-				shortest = dist
-				closestCoin = v
-			end
-		end
-	end
+            local dist = (HumanoidRootPart.Position - v.Position).Magnitude
+            if dist < shortest then
+                shortest = dist
+                closestCoin = v
+            end
+        end
+    end
 
-	return closestCoin
+    return closestCoin
 end
 
 local function MoveToCoin(part)
-	if MoveTween then
-		MoveTween:Cancel()
-	end
+    if not part or not part.Parent then return end
+    if MoveTween then
+        MoveTween:Cancel()
+    end
 
-	local target = CFrame.new(part.Position + Vector3.new(0,2,0))
-	local info = TweenInfo.new(
-		MOVE_SPEED,
-		Enum.EasingStyle.Linear,
-		Enum.EasingDirection.Out
-	)
+    local distance = (HumanoidRootPart.Position - part.Position).Magnitude
 
-	MoveTween = TweenService:Create(HumanoidRootPart, info, {
-		CFrame = target
-	})
-
-	MoveTween:Play()
-	MoveTween.Completed:Wait()
+    if distance < 3 then
+        HumanoidRootPart.CFrame = CFrame.new(part.Position + Vector3.new(0, 2, 0))
+    else
+        local target = CFrame.new(part.Position + Vector3.new(0, 2, 0))
+        local info = TweenInfo.new(MOVE_SPEED, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        MoveTween = TweenService:Create(HumanoidRootPart, info, {CFrame = target})
+        MoveTween:Play()
+        MoveTween.Completed:Wait()
+    end
+    
+    TotalCoins = TotalCoins + 1
+    CoinsLabel.Text = "العملات المجمعة: "..TotalCoins
 end
 
 local function StartFarm()
-	if Farming then return end
-	Farming = true
-	table.clear(VisitedCoins)
-
-	task.spawn(function()
-		while Farming do
-			local coin = GetNextClosestCoin()
-			if not coin then
-				table.clear(VisitedCoins)
-				task.wait(0.3)
-				continue
-			end
-			MoveToCoin(coin)
-			VisitedCoins[coin] = true
-			task.wait(VISIT_DELAY)
-		end
-	end)
+    if Farming then return end
+    Farming = true
+    StatusLabel.Text = "الحالة: يعمل"
+    StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    table.clear(VisitedCoins)
+    
+    task.spawn(function()
+        while Farming do
+            local coin = GetNextClosestCoin()
+            if not coin then
+                table.clear(VisitedCoins)
+                task.wait(0.3)
+                continue
+            end
+            MoveToCoin(coin)
+            VisitedCoins[coin] = true
+            task.wait(VISIT_DELAY)
+        end
+    end)
 end
 
 local function StopFarm()
-	Farming = false
-	if MoveTween then
-		MoveTween:Cancel()
-	end
+    Farming = false
+    StatusLabel.Text = "الحالة: متوقف"
+    StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+    if MoveTween then
+        MoveTween:Cancel()
+    end
 end
 
---// Buttons
+--// تحديث القيم
+DelayPlus.MouseButton1Click:Connect(function()
+    VISIT_DELAY = VISIT_DELAY + 0.1
+    DelayLabel.Text = "تأخير: "..string.format("%.1f", VISIT_DELAY).."s"
+end)
+
+DelayMinus.MouseButton1Click:Connect(function()
+    VISIT_DELAY = math.max(0.1, VISIT_DELAY - 0.1)
+    DelayLabel.Text = "تأخير: "..string.format("%.1f", VISIT_DELAY).."s"
+end)
+
+SpeedPlus.MouseButton1Click:Connect(function()
+    MOVE_SPEED = MOVE_SPEED + 0.1
+    SpeedLabel.Text = "السرعة: "..string.format("%.1f", MOVE_SPEED)
+end)
+
+SpeedMinus.MouseButton1Click:Connect(function()
+    MOVE_SPEED = math.max(0.1, MOVE_SPEED - 0.1)
+    SpeedLabel.Text = "السرعة: "..string.format("%.1f", MOVE_SPEED)
+end)
+
+--// الأحداث
 ToggleButton.MouseButton1Click:Connect(function()
-	Frame.Visible = not Frame.Visible
+    Frame.Visible = not Frame.Visible
 end)
 
 StartBtn.MouseButton1Click:Connect(StartFarm)
 StopBtn.MouseButton1Click:Connect(StopFarm)
+
 CloseBtn.MouseButton1Click:Connect(function()
-	Frame.Visible = false
+    Frame.Visible = false
 end)
 
 Player.CharacterAdded:Connect(function(char)
-	Character = char
-	HumanoidRootPart = char:WaitForChild("HumanoidRootPart")
+    Character = char
+    HumanoidRootPart = char:WaitForChild("HumanoidRootPart")
 end)
