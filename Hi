@@ -1,0 +1,309 @@
+--// Services
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+--// Player
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+--// Variables
+local Farming = false
+local MoveTween
+local MOVE_SPEED = 1.5
+local VISIT_DELAY = 1.5
+local VisitedCoins = {}
+
+--// GUI
+local ScreenGui = Instance.new("ScreenGui", Player.PlayerGui)
+ScreenGui.Name = "CoinFarmGui"
+ScreenGui.ResetOnSpawn = false
+
+-- Toggle Button
+local ToggleButton = Instance.new("TextButton", ScreenGui)
+ToggleButton.Size = UDim2.fromOffset(55,55)
+ToggleButton.Position = UDim2.fromScale(0.05,0.4)
+ToggleButton.Text = "💰"
+ToggleButton.BackgroundColor3 = Color3.fromRGB(30,30,30)
+ToggleButton.TextColor3 = Color3.new(1,1,1)
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.TextSize = 24
+ToggleButton.Active = true
+ToggleButton.Draggable = true
+Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(1,0)
+
+-- Main Frame
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.fromOffset(380,320)
+Frame.Position = UDim2.fromScale(0.35,0.25)
+Frame.BackgroundColor3 = Color3.fromRGB(20,20,25)
+Frame.Visible = false
+Frame.Active = true
+Frame.Draggable = true
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0,18)
+
+-- Stroke
+local Stroke = Instance.new("UIStroke", Frame)
+Stroke.Color = Color3.fromRGB(255,215,0)
+Stroke.Thickness = 1.2
+Stroke.Transparency = 0.2
+
+-- Title
+local Title = Instance.new("TextLabel", Frame)
+Title.Size = UDim2.new(1,-20,0,45)
+Title.Position = UDim2.fromOffset(10,5)
+Title.BackgroundTransparency = 1
+Title.Text = "Coin Auto Farm"
+Title.TextColor3 = Color3.fromRGB(255,215,0)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 24
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Version
+local Version = Instance.new("TextLabel", Frame)
+Version.Size = UDim2.fromOffset(120,20)
+Version.Position = UDim2.fromOffset(10,45)
+Version.BackgroundTransparency = 1
+Version.Text = "Version 1.8"
+Version.TextColor3 = Color3.fromRGB(180,180,180)
+Version.Font = Enum.Font.Gotham
+Version.TextSize = 14
+Version.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Author
+local Author = Instance.new("TextLabel", Frame)
+Author.Size = UDim2.fromOffset(200,20)
+Author.Position = UDim2.fromOffset(10,65)
+Author.BackgroundTransparency = 1
+Author.Text = "Made by: دحمكس | D7mx"
+Author.TextColor3 = Color3.fromRGB(180,180,180)
+Author.Font = Enum.Font.Gotham
+Author.TextSize = 14
+Author.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Close Button
+local CloseBtn = Instance.new("TextButton", Frame)
+CloseBtn.Size = UDim2.fromOffset(30,30)
+CloseBtn.Position = UDim2.fromOffset(Frame.Size.X.Offset - 35,5)
+CloseBtn.Text = "✕"
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 18
+CloseBtn.TextColor3 = Color3.new(1,0,0)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(25,25,25)
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(1,0)
+
+-- Start Button
+local StartBtn = Instance.new("TextButton", Frame)
+StartBtn.Size = UDim2.fromOffset(150,50)
+StartBtn.Position = UDim2.fromOffset(20,100)
+StartBtn.Text = "تشغيل"
+StartBtn.Font = Enum.Font.GothamBold
+StartBtn.TextSize = 18
+StartBtn.TextColor3 = Color3.new(1,1,1)
+StartBtn.BackgroundColor3 = Color3.fromRGB(50,180,90)
+Instance.new("UICorner", StartBtn).CornerRadius = UDim.new(0,14)
+
+-- Stop Button
+local StopBtn = Instance.new("TextButton", Frame)
+StopBtn.Size = UDim2.fromOffset(150,50)
+StopBtn.Position = UDim2.fromOffset(210,100)
+StopBtn.Text = "إيقاف"
+StopBtn.Font = Enum.Font.GothamBold
+StopBtn.TextSize = 18
+StopBtn.TextColor3 = Color3.new(1,1,1)
+StopBtn.BackgroundColor3 = Color3.fromRGB(200,70,70)
+Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0,14)
+
+-- Settings Title
+local SettingsTitle = Instance.new("TextLabel", Frame)
+SettingsTitle.Size = UDim2.fromOffset(200,25)
+SettingsTitle.Position = UDim2.fromOffset(10,170)
+SettingsTitle.BackgroundTransparency = 1
+SettingsTitle.Text = "Settings"
+SettingsTitle.TextColor3 = Color3.fromRGB(255,215,0)
+SettingsTitle.Font = Enum.Font.GothamBold
+SettingsTitle.TextSize = 16
+SettingsTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Setting: Frame Color Buttons
+local function CreateColorBtn(pos, color)
+	local btn = Instance.new("TextButton", Frame)
+	btn.Size = UDim2.fromOffset(40,40)
+	btn.Position = pos
+	btn.Text = ""
+	btn.BackgroundColor3 = color
+	btn.MouseButton1Click:Connect(function()
+		Frame.BackgroundColor3 = color
+	end)
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(1,0)
+end
+
+CreateColorBtn(UDim2.fromOffset(20,205), Color3.fromRGB(20,20,25))
+CreateColorBtn(UDim2.fromOffset(70,205), Color3.fromRGB(35,35,45))
+CreateColorBtn(UDim2.fromOffset(120,205), Color3.fromRGB(25,30,40))
+CreateColorBtn(UDim2.fromOffset(170,205), Color3.fromRGB(40,25,50))
+
+-- Setting: VISIT_DELAY
+local DelayLabel = Instance.new("TextLabel", Frame)
+DelayLabel.Size = UDim2.fromOffset(150,20)
+DelayLabel.Position = UDim2.fromOffset(10,255)
+DelayLabel.BackgroundTransparency = 1
+DelayLabel.Text = "Visit Delay: "..VISIT_DELAY.."s"
+DelayLabel.TextColor3 = Color3.fromRGB(180,180,180)
+DelayLabel.Font = Enum.Font.Gotham
+DelayLabel.TextSize = 14
+DelayLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local IncreaseDelay = Instance.new("TextButton", Frame)
+IncreaseDelay.Size = UDim2.fromOffset(25,25)
+IncreaseDelay.Position = UDim2.fromOffset(160,252)
+IncreaseDelay.Text = "+"
+IncreaseDelay.Font = Enum.Font.GothamBold
+IncreaseDelay.TextSize = 16
+IncreaseDelay.TextColor3 = Color3.new(0,1,0)
+IncreaseDelay.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Instance.new("UICorner", IncreaseDelay).CornerRadius = UDim.new(1,0)
+IncreaseDelay.MouseButton1Click:Connect(function()
+	VISIT_DELAY = VISIT_DELAY + 0.1
+	DelayLabel.Text = "Visit Delay: "..string.format("%.1f",VISIT_DELAY).."s"
+end)
+
+local DecreaseDelay = Instance.new("TextButton", Frame)
+DecreaseDelay.Size = UDim2.fromOffset(25,25)
+DecreaseDelay.Position = UDim2.fromOffset(190,252)
+DecreaseDelay.Text = "-"
+DecreaseDelay.Font = Enum.Font.GothamBold
+DecreaseDelay.TextSize = 16
+DecreaseDelay.TextColor3 = Color3.new(1,0,0)
+DecreaseDelay.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Instance.new("UICorner", DecreaseDelay).CornerRadius = UDim.new(1,0)
+DecreaseDelay.MouseButton1Click:Connect(function()
+	VISIT_DELAY = math.max(0.1,VISIT_DELAY - 0.1)
+	DelayLabel.Text = "Visit Delay: "..string.format("%.1f",VISIT_DELAY).."s"
+end)
+
+-- Setting: MOVE_SPEED
+local SpeedLabel = Instance.new("TextLabel", Frame)
+SpeedLabel.Size = UDim2.fromOffset(150,20)
+SpeedLabel.Position = UDim2.fromOffset(220,255)
+SpeedLabel.BackgroundTransparency = 1
+SpeedLabel.Text = "Move Speed: "..MOVE_SPEED
+SpeedLabel.TextColor3 = Color3.fromRGB(180,180,180)
+SpeedLabel.Font = Enum.Font.Gotham
+SpeedLabel.TextSize = 14
+SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local IncreaseSpeed = Instance.new("TextButton", Frame)
+IncreaseSpeed.Size = UDim2.fromOffset(25,25)
+IncreaseSpeed.Position = UDim2.fromOffset(310,252)
+IncreaseSpeed.Text = "+"
+IncreaseSpeed.Font = Enum.Font.GothamBold
+IncreaseSpeed.TextSize = 16
+IncreaseSpeed.TextColor3 = Color3.new(0,1,0)
+IncreaseSpeed.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Instance.new("UICorner", IncreaseSpeed).CornerRadius = UDim.new(1,0)
+IncreaseSpeed.MouseButton1Click:Connect(function()
+	MOVE_SPEED = MOVE_SPEED + 0.1
+	SpeedLabel.Text = "Move Speed: "..string.format("%.1f",MOVE_SPEED)
+end)
+
+local DecreaseSpeed = Instance.new("TextButton", Frame)
+DecreaseSpeed.Size = UDim2.fromOffset(25,25)
+DecreaseSpeed.Position = UDim2.fromOffset(340,252)
+DecreaseSpeed.Text = "-"
+DecreaseSpeed.Font = Enum.Font.GothamBold
+DecreaseSpeed.TextSize = 16
+DecreaseSpeed.TextColor3 = Color3.new(1,0,0)
+DecreaseSpeed.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Instance.new("UICorner", DecreaseSpeed).CornerRadius = UDim.new(1,0)
+DecreaseSpeed.MouseButton1Click:Connect(function()
+	MOVE_SPEED = math.max(0.1,MOVE_SPEED - 0.1)
+	SpeedLabel.Text = "Move Speed: "..string.format("%.1f",MOVE_SPEED)
+end)
+
+--// Functions (منطق السكربت بدون تغيير)
+
+local function GetNextClosestCoin()
+	local closestCoin
+	local shortest = math.huge
+
+	for _,v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("BasePart")
+			and v.Name == "Coin_Server"
+			and v.Parent
+			and not VisitedCoins[v] then
+
+			local dist = (HumanoidRootPart.Position - v.Position).Magnitude
+			if dist < shortest then
+				shortest = dist
+				closestCoin = v
+			end
+		end
+	end
+
+	return closestCoin
+end
+
+local function MoveToCoin(part)
+	if MoveTween then
+		MoveTween:Cancel()
+	end
+
+	local target = CFrame.new(part.Position + Vector3.new(0,2,0))
+	local info = TweenInfo.new(
+		MOVE_SPEED,
+		Enum.EasingStyle.Linear,
+		Enum.EasingDirection.Out
+	)
+
+	MoveTween = TweenService:Create(HumanoidRootPart, info, {
+		CFrame = target
+	})
+
+	MoveTween:Play()
+	MoveTween.Completed:Wait()
+end
+
+local function StartFarm()
+	if Farming then return end
+	Farming = true
+	table.clear(VisitedCoins)
+
+	task.spawn(function()
+		while Farming do
+			local coin = GetNextClosestCoin()
+			if not coin then
+				table.clear(VisitedCoins)
+				task.wait(0.3)
+				continue
+			end
+			MoveToCoin(coin)
+			VisitedCoins[coin] = true
+			task.wait(VISIT_DELAY)
+		end
+	end)
+end
+
+local function StopFarm()
+	Farming = false
+	if MoveTween then
+		MoveTween:Cancel()
+	end
+end
+
+--// Buttons
+ToggleButton.MouseButton1Click:Connect(function()
+	Frame.Visible = not Frame.Visible
+end)
+
+StartBtn.MouseButton1Click:Connect(StartFarm)
+StopBtn.MouseButton1Click:Connect(StopFarm)
+CloseBtn.MouseButton1Click:Connect(function()
+	Frame.Visible = false
+end)
+
+Player.CharacterAdded:Connect(function(char)
+	Character = char
+	HumanoidRootPart = char:WaitForChild("HumanoidRootPart")
+end)
